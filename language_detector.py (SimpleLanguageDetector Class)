@@ -1,0 +1,106 @@
+"""
+SimpleLanguageDetector Class
+From: Step 5 - Building a Practical Language Detector Class
+
+Reusable language detection class for production use.
+"""
+
+import fasttext
+import urllib.request
+import os
+
+class SimpleLanguageDetector:
+    """A simple, production-ready language detector using FastText"""
+    
+    def __init__(self, confidence_threshold=0.7, model_path=None):
+        self.confidence_threshold = confidence_threshold
+        self.language_names = {
+            'en': 'English', 'es': 'Spanish', 'fr': 'French', 'de': 'German',
+            'it': 'Italian', 'pt': 'Portuguese', 'ru': 'Russian', 'ja': 'Japanese',
+            'ko': 'Korean', 'zh': 'Chinese', 'ar': 'Arabic', 'hi': 'Hindi',
+            'tr': 'Turkish', 'nl': 'Dutch'
+        }
+        
+        # Load model
+        if model_path is None:
+            model_path = self._download_model()
+        self.model = fasttext.load_model(model_path)
+    
+    def _download_model(self):
+        """Download FastText language detection model if not exists"""
+        model_url = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin'
+        model_path = 'lid.176.bin'
+        
+        if not os.path.exists(model_path):
+            print("Downloading FastText language detection model...")
+            urllib.request.urlretrieve(model_url, model_path)
+            print("Model downloaded successfully!")
+        
+        return model_path
+    
+    def _clean_language_code(self, pred_lang):
+        """Clean FastText prediction format"""
+        return pred_lang.replace('__label__', '')
+    
+    def _get_language_name(self, code):
+        """Get human-readable language name"""
+        return self.language_names.get(code, f'Unknown ({code})')
+    
+    def detect(self, text):
+        """Detect language of text"""
+        if not text or len(text.strip()) < 3:
+            return {
+                'text': text,
+                'language': 'unknown',
+                'language_name': 'Unknown',
+                'confidence': 0.0,
+                'status': 'too_short'
+            }
+        
+        clean_text = text.replace('\n', ' ').strip()
+        predictions = self.model.predict(clean_text, k=1)
+        
+        pred_lang = self._clean_language_code(predictions[0][0])
+        confidence = float(predictions[1][0])
+        
+        status = 'success' if confidence >= self.confidence_threshold else 'low_confidence'
+        
+        return {
+            'text': text,
+            'language': pred_lang,
+            'language_name': self._get_language_name(pred_lang),
+            'confidence': confidence,
+            'status': status
+        }
+    
+    def detect_batch(self, texts, show_progress=True):
+        """Detect language for multiple texts"""
+        results = []
+        
+        for i, text in enumerate(texts):
+            result = self.detect(text)
+            results.append(result)
+            
+            if show_progress and (i + 1) % 50 == 0:
+                print(f"Processed {i + 1}/{len(texts)} texts...")
+        
+        return results
+    
+    def get_summary(self, results):
+        """Get summary statistics from batch results"""
+        total = len(results)
+        successful = len([r for r in results if r['status'] == 'success'])
+        
+        # Count languages
+        language_counts = {}
+        for result in results:
+            if result['status'] == 'success':
+                lang = result['language_name']
+                language_counts[lang] = language_counts.get(lang, 0) + 1
+        
+        return {
+            'total_texts': total,
+            'successful_detections': successful,
+            'success_rate': successful / total if total > 0 else 0,
+            'language_distribution': language_counts
+        }
