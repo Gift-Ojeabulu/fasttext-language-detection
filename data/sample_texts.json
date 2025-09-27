@@ -1,0 +1,27 @@
+{
+  "challenging_cases": [
+    {"text": "OK", "expected_issue": "very_short"},
+    {"text": "123 456 789", "expected_issue": "numbers_only"},
+    {"text": "Hello mundo!", "expected_issue": "mixed_languages"},
+    {"text": "@user check this out! https://example.com", "expected_issue": "social_media_noise"},
+    {"text": "", "expected_issue": "empty_string"},
+    {"text": "LOL ROFL LMAO", "expected_issue": "internet_slang"}
+  ],
+  "test_cases": [
+    {"text": "This is a comprehensive English sentence with enough content for detection.", "expected_language": "en"},
+    {"text": "Ceci est un texte français avec suffisamment de contenu.", "expected_language": "fr"},
+    {"text": "Este es un texto español con suficiente contenido.", "expected_language": "es"},
+    {"text": "Dies ist ein deutscher Text mit ausreichend Inhalt.", "expected_language": "de"},
+    {"text": "Questo è un testo italiano con contenuto sufficiente.", "expected_language": "it"}
+  ],
+  "multilingual_examples": [
+    {"text": "The weather is beautiful today", "language": "en"},
+    {"text": "El clima está hermoso hoy", "language": "es"}, 
+    {"text": "Le temps est magnifique aujourd'hui", "language": "fr"},
+    {"text": "Das Wetter ist heute schön", "language": "de"},
+    {"text": "Il tempo è bello oggi", "language": "it"},
+    {"text": "今日は天気がいいです", "language": "ja"},
+    {"text": "오늘 날씨가 좋네요", "language": "ko"},
+    {"text": "今天天气很好", "language": "zh"}
+  ]
+}
